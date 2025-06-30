@@ -305,4 +305,7 @@
 // A MCP Test: Control a lamp
 #define LAMP_GPIO GPIO_NUM_18
 
+/**< use new idle screen of xiaozhi */
+#define IDLE_SCREEN_HOOK 1
+#define DISPLAY_TOUCH_AS_LISTEN_BUTTON 1
 #endif // _BOARD_CONFIG_H_

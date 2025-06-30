@@ -973,7 +973,10 @@ void Application::SetDeviceState(DeviceState state) {
     auto& board = Board::GetInstance();
     auto display = board.GetDisplay();
     auto led = board.GetLed();
-    led->OnStateChanged();
+
+    display->OnStateChanged();
+    
+        led->OnStateChanged();
     switch (state) {
         case kDeviceStateUnknown:
         case kDeviceStateIdle:

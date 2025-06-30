@@ -18,6 +18,9 @@ class Display {
 public:
     Display();
     virtual ~Display();
+    // hook the device state for idle screen
+    virtual void OnStateChanged() {};
+    virtual void OnClockTimer() {};
 
     virtual void SetStatus(const char* status);
     virtual void ShowNotification(const char* notification, int duration_ms = 3000);
