@@ -31,7 +31,11 @@ dependencies:
   espressif2022/image_player: ^1.1.0
   espressif/adc_mic: ^0.2.0
   espressif/esp_mmap_assets: '>=1.2'
-  txp666/otto-emoji-gif-component: ~1.0.2
+  # 这里的组件不会自动更新，需要使用类似idf.py update-dependencies 强制更新，这个更新指令多用于测试
+  # 生产环境不需要这么频繁更新
+  jkstgif:
+    git: https://github.com/bruceOrange22/gittest.git
+    version: dev
 
   # SenseCAP Watcher Board
   wvirgil123/esp_jpeg_simd:

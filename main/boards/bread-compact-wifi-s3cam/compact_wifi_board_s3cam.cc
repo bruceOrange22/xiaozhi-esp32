@@ -19,9 +19,7 @@
 #include <esp_lcd_panel_ops.h>
 #include <driver/spi_common.h>
 
-
-
-
+#include "otto_emoji_display.h"
 
 #if defined(LCD_TYPE_ILI9341_SERIAL)
 #include "esp_lcd_ili9341.h"
@@ -132,6 +130,7 @@ private:
 #ifdef LCD_TYPE_GC9A01_SERIAL
         panel_config.vendor_config = &gc9107_vendor_config;
 #endif
+#if 1
         display_ = new SpiLcdDisplay(panel_io, panel,
                                      DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_OFFSET_X, DISPLAY_OFFSET_Y, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y, DISPLAY_SWAP_XY,
                                      {
@@ -143,7 +142,18 @@ private:
                                          .emoji_font = DISPLAY_HEIGHT >= 240 ? font_emoji_64_init() : font_emoji_32_init(),
 #endif
                                      });
+#else
+        display_ = new OttoEmojiDisplay(
+            panel_io, panel, DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_OFFSET_X, DISPLAY_OFFSET_Y,
+            DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y, DISPLAY_SWAP_XY,
+            {
+                .text_font = &font_puhui_16_4,
+                .icon_font = &font_awesome_16_4,
+                .emoji_font = DISPLAY_HEIGHT >= 240 ? font_emoji_64_init() : font_emoji_32_init(),
+            });
+#endif
     }
+
 
     void InitializeCamera() {
         camera_config_t config = {};
@@ -192,7 +202,7 @@ private:
         thing_manager.AddThing(iot::CreateThing("Speaker"));
         thing_manager.AddThing(iot::CreateThing("Screen"));
 #elif CONFIG_IOT_PROTOCOL_MCP
-
+        static LampController lamp(LAMP_GPIO);
 #endif
     }
 
