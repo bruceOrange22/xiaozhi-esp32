@@ -122,6 +122,10 @@ bool Esp32Camera::Capture() {
             // 交换每个16位字内的字节
             dst[i] = __builtin_bswap16(src[i]);
         }
+        if (!preview_image_.data) {
+            ESP_LOGE(TAG, "Preview image object is not initialized");
+            return false; // preview_img_obj_ 是你的 lv_img 对象
+        }
         display->SetPreviewImage(&preview_image_);
     }
     return true;

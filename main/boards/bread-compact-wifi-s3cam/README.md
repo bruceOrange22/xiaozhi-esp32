@@ -29,3 +29,7 @@ Xiaozhi Assistant -> Board Type ->面包板新版接线（WiFi）+ LCD + Camera
 ```bash
 idf.py build flash
 ```
+将屏幕参数修改为如下时：
+![alt text](image.png)
+屏幕显示方向就可以从1 变为 2：
+![alt text](image-1.png)
