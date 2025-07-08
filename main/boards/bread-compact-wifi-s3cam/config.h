@@ -316,6 +316,13 @@
 #endif
 
 
+
+
 // A MCP Test: Control a lamp
 #define LAMP_GPIO GPIO_NUM_18
 #endif // _BOARD_CONFIG_H_
+
+// WS2812灯珠配置
+#define WS2812_GPIO GPIO_NUM_14 // WS2812灯珠数据线GPIO
+#define WS2812_LED_NUM 20       // 总灯珠数
+#define WS2812_LED_NUM_USED 20  // 实际用的灯珠数
