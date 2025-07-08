@@ -464,6 +464,7 @@ namespace iot
                     if (val < 0) val = 0;
                     if (val > 100) val = 100;
                     brightness_ = val;
+                    audio_led_meter_set_brightness(val); // 同步到音量律动
                     ESP_LOGI(TAG, "设置亮度为%d%%", brightness_);
                 }
             );
@@ -478,6 +479,12 @@ namespace iot
                 led_strip_refresh(led_strip_);
                 audio_led_meter_enable(1);
             });
+            methods_.AddMethod(
+                "random_meter_colors", "随机更换音量律动的灯带配色", ParameterList(), [this](const ParameterList &) {
+                    audio_led_meter_init_colors(); // 重新随机一组颜色
+                    ESP_LOGI(TAG, "已随机更换音量律动的灯带配色");
+                }
+            );
 
             // 彩虹灯效
             methods_.AddMethod("rainbow", "彩虹灯效", ParameterList(), [this](const ParameterList &) {
