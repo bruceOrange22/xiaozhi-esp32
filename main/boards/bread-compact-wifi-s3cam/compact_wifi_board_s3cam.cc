@@ -21,6 +21,9 @@
 
 #include "otto_emoji_display.h"
 
+// 控制器初始化函数声明
+extern void InitializeWs2812ControllerMCP();
+
 #if defined(LCD_TYPE_ILI9341_SERIAL)
 #include "esp_lcd_ili9341.h"
 #endif
@@ -195,6 +198,8 @@ private:
         });
     }
 
+    void InitializeController() { InitializeWs2812ControllerMCP(); }
+
     // 物联网初始化，添加对 AI 可见设备
     void InitializeIot() {
 #if CONFIG_IOT_PROTOCOL_XIAOZHI
@@ -204,6 +209,7 @@ private:
         thing_manager.AddThing(iot::CreateThing("Ws2812Controller"));
 #elif CONFIG_IOT_PROTOCOL_MCP
         static LampController lamp(LAMP_GPIO);
+        InitializeController();
 #endif
     }
 
