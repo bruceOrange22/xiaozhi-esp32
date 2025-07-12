@@ -1,0 +1,9 @@
+{
+    "target": "esp32s3",
+    "builds": [
+        {
+            "name": "compact_wifi_board_s3cam185",
+            "sdkconfig_append": []
+        }
+    ]
+}
