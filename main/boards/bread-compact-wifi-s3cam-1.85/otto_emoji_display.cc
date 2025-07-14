@@ -38,15 +38,15 @@ const OttoEmojiDisplay::EmotionMap OttoEmojiDisplay::emotion_maps_[] = {
     {"angry", &anger},
 
     // 惊讶类表情 -> scare
-    {"surprised", &scare},
-    {"shocked", &scare},
+    {"surprised", &sad},
+    {"shocked", &sad},
 
     // 思考/困惑类表情 -> buxue
-    {"thinking", &buxue},
-    {"confused", &buxue},
-    {"embarrassed", &buxue},
+    {"thinking", &staticstate},
+    {"confused", &staticstate},
+    {"embarrassed", &staticstate},
 
-    {nullptr, nullptr}  // 结束标记
+    {nullptr, nullptr} // 结束标记
 };
 
 OttoEmojiDisplay::OttoEmojiDisplay(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_handle_t panel,

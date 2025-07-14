@@ -287,7 +287,7 @@ private:
             ESP_LOGI(TAG, "Failed to read register 0x04, error code: %d\n", ret);
         }
 
-        io_config.pclk_hz = 80 * 1000 * 1000;
+        io_config.pclk_hz = 20 * 1000 * 1000;
         if (esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)QSPI_LCD_HOST, &io_config, &panel_io) != ESP_OK)
         {
             ESP_LOGI(TAG, "Failed to set LCD communication parameters -- SPI\r\n");
@@ -311,6 +311,8 @@ private:
         vendor_config.init_cmds = vendor_specific_init_new;
         vendor_config.init_cmds_size = sizeof(vendor_specific_init_new) / sizeof(st77916_lcd_init_cmd_t);
         printf("Using vendor-specific initialization commands.\n");
+
+
         ESP_LOGI(TAG, "------------------------------------- End of version selection------------------------------------- \r\n");
 
         const esp_lcd_panel_dev_config_t panel_config = {

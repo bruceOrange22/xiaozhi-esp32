@@ -37,9 +37,9 @@ dependencies:
   espressif/adc_battery_estimation: ^0.2.0
   # 这里的组件不会自动更新，需要使用类似idf.py update-dependencies 强制更新，这个更新指令多用于测试
   # 生产环境不需要这么频繁更新
-  jkstgif:
+  jkstgif185al:
     git: https://github.com/bruceOrange22/gittest.git
-    version: dev
+    version: dev-v185
   # SenseCAP Watcher Board
   wvirgil123/esp_jpeg_simd:
     version: 1.0.0
