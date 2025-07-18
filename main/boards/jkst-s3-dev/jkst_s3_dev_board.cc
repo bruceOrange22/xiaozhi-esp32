@@ -13,68 +13,19 @@
 #include <driver/i2c_master.h>
 #include <driver/spi_common.h>
 #include <wifi_station.h>
-#include <esp_lcd_touch_ft5x06.h>
 #include <esp_lvgl_port.h>
 #include <lvgl.h>
 
-
-#define TAG "LichuangDevBoard"
+#define TAG "JKST-S3-DevBoard"
 
 LV_FONT_DECLARE(font_puhui_20_4);
 LV_FONT_DECLARE(font_awesome_20_4);
 
-class Pca9557 : public I2cDevice {
-public:
-    Pca9557(i2c_master_bus_handle_t i2c_bus, uint8_t addr) : I2cDevice(i2c_bus, addr) {
-        WriteReg(0x01, 0x03);
-        WriteReg(0x03, 0xf8);
-    }
-
-    void SetOutputState(uint8_t bit, uint8_t level) {
-        uint8_t data = ReadReg(0x01);
-        data = (data & ~(1 << bit)) | (level << bit);
-        WriteReg(0x01, data);
-    }
-};
-
-class CustomAudioCodec : public BoxAudioCodec {
-private:
-    Pca9557* pca9557_;
-
-public:
-    CustomAudioCodec(i2c_master_bus_handle_t i2c_bus, Pca9557* pca9557) 
-        : BoxAudioCodec(i2c_bus, 
-                       AUDIO_INPUT_SAMPLE_RATE, 
-                       AUDIO_OUTPUT_SAMPLE_RATE,
-                       AUDIO_I2S_GPIO_MCLK, 
-                       AUDIO_I2S_GPIO_BCLK, 
-                       AUDIO_I2S_GPIO_WS, 
-                       AUDIO_I2S_GPIO_DOUT, 
-                       AUDIO_I2S_GPIO_DIN,
-                       GPIO_NUM_NC, 
-                       AUDIO_CODEC_ES8311_ADDR, 
-                       AUDIO_CODEC_ES7210_ADDR, 
-                       AUDIO_INPUT_REFERENCE),
-          pca9557_(pca9557) {
-    }
-
-    virtual void EnableOutput(bool enable) override {
-        BoxAudioCodec::EnableOutput(enable);
-        if (enable) {
-            pca9557_->SetOutputState(1, 1);
-        } else {
-            pca9557_->SetOutputState(1, 0);
-        }
-    }
-};
-
-class LichuangDevBoard : public WifiBoard {
+class JKSTS3DevBoard : public WifiBoard {
 private:
     i2c_master_bus_handle_t i2c_bus_;
-    i2c_master_dev_handle_t pca9557_handle_;
     Button boot_button_;
     LcdDisplay* display_;
-    Pca9557* pca9557_;
     Esp32Camera* camera_;
 
     void InitializeI2c() {
@@ -92,16 +43,13 @@ private:
             },
         };
         ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_cfg, &i2c_bus_));
-
-        // Initialize PCA9557
-        pca9557_ = new Pca9557(i2c_bus_, 0x19);
     }
 
     void InitializeSpi() {
         spi_bus_config_t buscfg = {};
-        buscfg.mosi_io_num = GPIO_NUM_40;
+        buscfg.mosi_io_num = DISPLAY_MOSI_PIN; // SPI MOSI
         buscfg.miso_io_num = GPIO_NUM_NC;
-        buscfg.sclk_io_num = GPIO_NUM_41;
+        buscfg.sclk_io_num = DISPLAY_CLK_PIN; // SPI CLK
         buscfg.quadwp_io_num = GPIO_NUM_NC;
         buscfg.quadhd_io_num = GPIO_NUM_NC;
         buscfg.max_transfer_sz = DISPLAY_WIDTH * DISPLAY_HEIGHT * sizeof(uint16_t);
@@ -127,14 +75,36 @@ private:
 #endif
     }
 
+
+    void I2cScan() {
+        printf("I2C scan result (bus %d):\r\n", 1);
+        printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\r\n");
+        for (int i = 0; i < 128; i += 16) {
+            printf("%02x: ", i);
+            for (int j = 0; j < 16; j++) {
+                uint8_t address = i + j;
+                esp_err_t ret = i2c_master_probe(i2c_bus_, address, pdMS_TO_TICKS(100));
+                if (ret == ESP_OK) {
+                    printf("%02x ", address);
+                } else if (ret == ESP_ERR_TIMEOUT) {
+                    printf("UU ");
+                } else {
+                    printf("-- ");
+                }
+            }
+            printf("\r\n");
+        }
+    }
+
+
     void InitializeSt7789Display() {
         esp_lcd_panel_io_handle_t panel_io = nullptr;
         esp_lcd_panel_handle_t panel = nullptr;
         // 液晶屏控制IO初始化
         ESP_LOGD(TAG, "Install panel IO");
         esp_lcd_panel_io_spi_config_t io_config = {};
-        io_config.cs_gpio_num = GPIO_NUM_NC;
-        io_config.dc_gpio_num = GPIO_NUM_39;
+        io_config.cs_gpio_num = DISPLAY_CS_PIN;
+        io_config.dc_gpio_num = DISPLAY_DC_PIN;
         io_config.spi_mode = 2;
         io_config.pclk_hz = 80 * 1000 * 1000;
         io_config.trans_queue_depth = 10;
@@ -145,13 +115,12 @@ private:
         // 初始化液晶屏驱动芯片ST7789
         ESP_LOGD(TAG, "Install LCD driver");
         esp_lcd_panel_dev_config_t panel_config = {};
-        panel_config.reset_gpio_num = GPIO_NUM_NC;
+        panel_config.reset_gpio_num = DISPLAY_RST_PIN;
         panel_config.rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB;
         panel_config.bits_per_pixel = 16;
         ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(panel_io, &panel_config, &panel));
         
         esp_lcd_panel_reset(panel);
-        pca9557_->SetOutputState(0, 0);
 
         esp_lcd_panel_init(panel);
         esp_lcd_panel_invert_color(panel, true);
@@ -170,73 +139,8 @@ private:
                                     });
     }
 
-    void I2cScan()
-    {
-        printf("I2C scan result (bus %d):\r\n", 1);
-        printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\r\n");
-        for (int i = 0; i < 128; i += 16)
-        {
-            printf("%02x: ", i);
-            for (int j = 0; j < 16; j++)
-            {
-                uint8_t address = i + j;
-                esp_err_t ret = i2c_master_probe(i2c_bus_, address, pdMS_TO_TICKS(100));
-                if (ret == ESP_OK)
-                {
-                    printf("%02x ", address);
-                }
-                else if (ret == ESP_ERR_TIMEOUT)
-                {
-                    printf("UU ");
-                }
-                else
-                {
-                    printf("-- ");
-                }
-            }
-            printf("\r\n");
-        }
-    }
-    
-    void InitializeTouch()
-    {
-        esp_lcd_touch_handle_t tp;
-        esp_lcd_touch_config_t tp_cfg = {
-            .x_max = DISPLAY_WIDTH,
-            .y_max = DISPLAY_HEIGHT,
-            .rst_gpio_num = GPIO_NUM_NC, // Shared with LCD reset
-            .int_gpio_num = GPIO_NUM_NC, 
-            .levels = {
-                .reset = 0,
-                .interrupt = 0,
-            },
-            .flags = {
-                .swap_xy = 1,
-                .mirror_x = 1,
-                .mirror_y = 0,
-            },
-        };
-        esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-        esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
-        tp_io_config.scl_speed_hz = 400000;
-
-        esp_lcd_new_panel_io_i2c(i2c_bus_, &tp_io_config, &tp_io_handle);
-        esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &tp);
-        assert(tp);
-
-        /* Add touch input (for selected screen) */
-        const lvgl_port_touch_cfg_t touch_cfg = {
-            .disp = lv_display_get_default(), 
-            .handle = tp,
-        };
-
-        lvgl_port_add_touch(&touch_cfg);
-    }
 
     void InitializeCamera() {
-        // Open camera power
-        pca9557_->SetOutputState(2, 0);
-
         camera_config_t config = {};
         config.ledc_channel = LEDC_CHANNEL_2;  // LEDC通道选择  用于生成XCLK时钟 但是S3不用
         config.ledc_timer = LEDC_TIMER_2; // LEDC timer选择  用于生成XCLK时钟 但是S3不用
@@ -269,15 +173,15 @@ private:
     }
 
 public:
-    LichuangDevBoard() : boot_button_(BOOT_BUTTON_GPIO) {
+    JKSTS3DevBoard() : boot_button_(BOOT_BUTTON_GPIO) {
         InitializeI2c();
         vTaskDelay(pdMS_TO_TICKS(100));
         I2cScan(); // 调试时加上，量产时可注释
         InitializeSpi();
         InitializeSt7789Display();
-        InitializeTouch();
+        // InitializeTouch();
         InitializeButtons();
-        InitializeCamera();
+        // InitializeCamera();
 
 #if CONFIG_IOT_PROTOCOL_XIAOZHI
         auto& thing_manager = iot::ThingManager::GetInstance();
@@ -288,9 +192,19 @@ public:
     }
 
     virtual AudioCodec* GetAudioCodec() override {
-        static CustomAudioCodec audio_codec(
+        static BoxAudioCodec audio_codec(
             i2c_bus_, 
-            pca9557_);
+            AUDIO_INPUT_SAMPLE_RATE, 
+            AUDIO_OUTPUT_SAMPLE_RATE,
+            AUDIO_I2S_GPIO_MCLK, 
+            AUDIO_I2S_GPIO_BCLK, 
+            AUDIO_I2S_GPIO_WS, 
+            AUDIO_I2S_GPIO_DOUT, 
+            AUDIO_I2S_GPIO_DIN,
+            GPIO_NUM_NC, 
+            AUDIO_CODEC_ES8311_ADDR, 
+            AUDIO_CODEC_ES7210_ADDR, 
+            AUDIO_INPUT_REFERENCE);
         return &audio_codec;
     }
 
@@ -308,4 +222,4 @@ public:
     }
 };
 
-DECLARE_BOARD(LichuangDevBoard);
+DECLARE_BOARD(JKSTS3DevBoard);
