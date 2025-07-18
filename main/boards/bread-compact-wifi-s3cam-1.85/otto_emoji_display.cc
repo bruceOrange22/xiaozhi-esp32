@@ -61,6 +61,14 @@ OttoEmojiDisplay::OttoEmojiDisplay(esp_lcd_panel_io_handle_t panel_io, esp_lcd_p
 void OttoEmojiDisplay::SetupGifContainer() {
     DisplayLockGuard lock(this);
 
+    if (emotion_gif_)
+    {
+        // 先隐藏，防止动画回调再访问
+        lv_obj_add_flag(emotion_gif_, LV_OBJ_FLAG_HIDDEN);
+        // LVGL 9 可用 lv_gif_stop(emotion_gif_); LVGL 8 可直接删除
+        lv_obj_del(emotion_gif_);
+        emotion_gif_ = nullptr;
+    }
     if (emotion_label_) {
         lv_obj_del(emotion_label_);
     }
@@ -95,6 +103,7 @@ void OttoEmojiDisplay::SetupGifContainer() {
 
     emotion_gif_ = lv_gif_create(content_);
     int gif_size = LV_HOR_RES;
+    ESP_LOGI(TAG, "创建 GIF 对象，大小: %d ", gif_size);
     lv_obj_set_size(emotion_gif_, gif_size, gif_size);
     lv_obj_set_style_border_width(emotion_gif_, 0, 0);
     lv_obj_set_style_bg_opa(emotion_gif_, LV_OPA_TRANSP, 0);
@@ -158,6 +167,13 @@ void OttoEmojiDisplay::SetEmotion(const char* emotion) {
     }
 
     DisplayLockGuard lock(this);
+
+    static std::string last_emotion;
+    if (last_emotion == emotion) {
+        ESP_LOGI(TAG, "表情未变，不刷新");
+        return; // 表情未变，不刷新
+    }
+    last_emotion = emotion;
 
     for (const auto& map : emotion_maps_) {
         if (map.name && strcmp(map.name, emotion) == 0) {

@@ -431,17 +431,19 @@ void Application::Start() {
     codec->Start();
 
 #if CONFIG_USE_AUDIO_PROCESSOR
+    ESP_LOGI(TAG, "Using audio processor");
     xTaskCreatePinnedToCore([](void* arg) {
         Application* app = (Application*)arg;
         app->AudioLoop();
         vTaskDelete(NULL);
-    }, "audio_loop", 4096 * 2, this, 8, &audio_loop_task_handle_, 1);
+    }, "audio_loop", 4096 * 2, this, 12, &audio_loop_task_handle_, 1);
 #else
+    ESP_LOGI(TAG, "Not using audio processor");
     xTaskCreate([](void* arg) {
         Application* app = (Application*)arg;
         app->AudioLoop();
         vTaskDelete(NULL);
-    }, "audio_loop", 4096 * 2, this, 8, &audio_loop_task_handle_);
+    }, "audio_loop", 4096 * 2, this, 12, &audio_loop_task_handle_); // 优先级提高至10
 #endif
 
     /* Start the clock timer to update the status bar */

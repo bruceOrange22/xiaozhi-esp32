@@ -11,9 +11,11 @@
 
 #include "board.h"
 
-#define AUDIO_CODEC_DMA_DESC_NUM 6
-#define AUDIO_CODEC_DMA_FRAME_NUM 240
+#define AUDIO_CODEC_DMA_DESC_NUM 8
+#define AUDIO_CODEC_DMA_FRAME_NUM 500
 #define AUDIO_CODEC_DEFAULT_MIC_GAIN 30.0
+
+#define AUDIO_DOUBLE_BUFFERING 1 // ∆Ù”√À´ª∫≥Â
 
 class AudioCodec {
 public:

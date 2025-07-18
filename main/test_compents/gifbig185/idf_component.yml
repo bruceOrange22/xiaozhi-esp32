@@ -1,0 +1,21 @@
+## IDF Component Manager Manifest File
+dependencies:
+  lvgl/lvgl: ">=9.0"
+
+  ## Required IDF version
+  idf:
+    version: ">=5.4.0"
+
+version: "1.0.5"
+description: "Otto机器人GIF表情资源包 - 包含6个动态表情GIF"
+repository: "https://github.com/bruceOrange22/gittest"
+license: "MIT"
+url: "https://github.com/bruceOrange22/gittest"
+
+targets:
+  - esp32s3
+  - esp32
+  - esp32c3
+  - esp32c6
+  - esp32h2
+  - esp32p4

@@ -40,6 +40,11 @@ dependencies:
   jkstgif185al:
     git: https://github.com/bruceOrange22/gittest.git
     version: dev-v185
+
+  # gifbig185 组件由 Git 改为本地路径引用，便于实时更新和调试
+  # 这里的名称和文件夹名称必须一致，否则编译报错
+  gifbig185:
+    path: test_compents/gifbig185    
   # SenseCAP Watcher Board
   wvirgil123/esp_jpeg_simd:
     version: 1.0.0

@@ -19,6 +19,8 @@
 
 #include "otto_emoji_display.h"
 
+#include "esp_heap_caps.h"
+
 #define TAG "waveshare_lcd_1_85c-copy"
 
 #define LCD_OPCODE_WRITE_CMD (0x02ULL)
@@ -230,7 +232,16 @@ private:
                                                                                   QSPI_PIN_NUM_LCD_DATA2,
                                                                                   QSPI_PIN_NUM_LCD_DATA3,
                                                                                   QSPI_LCD_H_RES * 80 * sizeof(uint16_t));
-        ESP_ERROR_CHECK(spi_bus_initialize(QSPI_LCD_HOST, &bus_config, SPI_DMA_CH_AUTO));
+        
+    // 初始化时检查DMA内存余量
+    size_t free_dma = heap_caps_get_free_size(MALLOC_CAP_DMA);
+    ESP_LOGI(TAG, "Free DMA memory before init: %d bytes", free_dma);
+    ESP_ERROR_CHECK(spi_bus_initialize(QSPI_LCD_HOST, &bus_config, SPI_DMA_CH_AUTO));
+
+      // 初始化后再次检查
+      size_t free_dma_after = heap_caps_get_free_size(MALLOC_CAP_DMA);
+      ESP_LOGI(TAG, "Free DMA memory after init: %d bytes", free_dma_after);
+
     }
 
     void Initializest77916Display()
@@ -287,7 +298,7 @@ private:
             ESP_LOGI(TAG, "Failed to read register 0x04, error code: %d\n", ret);
         }
 
-        io_config.pclk_hz = 20 * 1000 * 1000;
+        io_config.pclk_hz = 40 * 1000 * 1000;
         if (esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)QSPI_LCD_HOST, &io_config, &panel_io) != ESP_OK)
         {
             ESP_LOGI(TAG, "Failed to set LCD communication parameters -- SPI\r\n");
@@ -310,9 +321,7 @@ private:
 
         vendor_config.init_cmds = vendor_specific_init_new;
         vendor_config.init_cmds_size = sizeof(vendor_specific_init_new) / sizeof(st77916_lcd_init_cmd_t);
-        printf("Using vendor-specific initialization commands.\n");
-
-
+        ESP_LOGI(TAG, "Using vendor-specific initialization commands.\n");
         ESP_LOGI(TAG, "------------------------------------- End of version selection------------------------------------- \r\n");
 
         const esp_lcd_panel_dev_config_t panel_config = {
@@ -383,6 +392,10 @@ public:
     {
         InitializeSpi();
         Initializest77916Display();
+        // 初始化77916后再次检查
+        size_t free_dma_after = heap_caps_get_free_size(MALLOC_CAP_DMA);
+        ESP_LOGI(TAG, "Free DMA memory after init: %d bytes", free_dma_after);
+
         InitializeButtons();
         InitializeIot();
         GetBacklight()->RestoreBrightness();
