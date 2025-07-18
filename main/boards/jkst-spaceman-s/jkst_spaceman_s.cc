@@ -73,6 +73,8 @@ class JKST_SPACEMANS : public WifiBoard {
 private:
  
     Button boot_button_;
+    Button touch_button_;
+
     LcdDisplay* display_;
     Esp32Camera *camera_;
 
@@ -162,6 +164,14 @@ private:
             }
             app.ToggleChatState();
         });
+        touch_button_.OnClick([this]()
+                              {
+                                    auto& app = Application::GetInstance();
+                                    if (app.GetDeviceState() == kDeviceStateStarting && !WifiStation::GetInstance().IsConnected()) {
+                                        ResetWifiConfiguration();
+                                    }
+                                    app.ToggleChatState();
+                                });
     }
 
     // 物联网初始化，添加对 AI 可见设备
@@ -224,8 +234,9 @@ private:
     }
 
 public:
-    JKST_SPACEMANS() :
-        boot_button_(BOOT_BUTTON_GPIO) {
+    JKST_SPACEMANS() : boot_button_(BOOT_BUTTON_GPIO),
+                       touch_button_(TOUCH_BUTTON_GPIO)
+    {
         InitializeSpi();
         InitializeLcdDisplay();
         InitializeButtons();
@@ -234,7 +245,6 @@ public:
         if (DISPLAY_BACKLIGHT_PIN != GPIO_NUM_NC) {
             GetBacklight()->RestoreBrightness();
         }
-        
     }
 
     // virtual Led* GetLed() override {

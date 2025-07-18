@@ -313,9 +313,9 @@ void Application::ToggleChatState() {
             SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
         });
     } else if (device_state_ == kDeviceStateSpeaking) {
-        Schedule([this]() {
-            AbortSpeaking(kAbortReasonNone);
-        });
+        ESP_LOGI(TAG, "Stop listening");
+        Schedule([this]()
+                 { AbortSpeaking(kAbortReasonNone); });
     } 
     // else if (device_state_ == kDeviceStateListening) {
     //     Schedule([this]() {
@@ -347,10 +347,11 @@ void Application::StartListening() {
             SetListeningMode(kListeningModeManualStop);
         });
     } else if (device_state_ == kDeviceStateSpeaking) {
-        Schedule([this]() {
+        Schedule([this]()
+                 {
+            ESP_LOGI(TAG, "Stop listening  kDeviceStateSpeaking");
             AbortSpeaking(kAbortReasonNone);
-            SetListeningMode(kListeningModeManualStop);
-        });
+            SetListeningMode(kListeningModeManualStop); });
     }
 }
 
@@ -652,6 +653,14 @@ void Application::Start() {
                 }
                 // Set the chat state to wake word detected
                 protocol_->SendWakeWordDetected(wake_word);
+
+                // Play the pop up sound to indicate the wake word is detected
+                // And wait 60ms to make sure the queue has been processed by audio task
+                ResetDecoder();
+                PlaySound(Lang::Sounds::P3_POPUP);
+                ESP_LOGI(TAG, "Wake word detected------------");
+                vTaskDelay(pdMS_TO_TICKS(60));
+
 #else
                 // Play the pop up sound to indicate the wake word is detected
                 // And wait 60ms to make sure the queue has been processed by audio task
@@ -661,6 +670,7 @@ void Application::Start() {
 #endif
                 SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
             } else if (device_state_ == kDeviceStateSpeaking) {
+                ESP_LOGI(TAG, "Abort speaking due to wake word detected: %s", wake_word.c_str());
                 AbortSpeaking(kAbortReasonWakeWordDetected);
             } else if (device_state_ == kDeviceStateActivating) {
                 SetDeviceState(kDeviceStateIdle);
@@ -1030,6 +1040,7 @@ void Application::WakeWordInvoke(const std::string& wake_word) {
         }); 
     } else if (device_state_ == kDeviceStateSpeaking) {
         Schedule([this]() {
+            ESP_LOGI(TAG, "Abort speaking due to wake word invoke");
             AbortSpeaking(kAbortReasonNone);
         });
     } else if (device_state_ == kDeviceStateListening) {   
