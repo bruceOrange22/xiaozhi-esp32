@@ -268,15 +268,25 @@
 #define DISPLAY_WIDTH   240
 #define DISPLAY_HEIGHT  240
 
-//旋转版本
+// 旋转版本左转180度
 // #define DISPLAY_MIRROR_X false
-// #define DISPLAY_MIRROR_Y false
-// #define DISPLAY_SWAP_XY true
+// #define DISPLAY_MIRROR_Y true
+// #define DISPLAY_SWAP_XY false
+
+// 旋转版本左转90度
+#define DISPLAY_MIRROR_X true
+#define DISPLAY_MIRROR_Y true
+#define DISPLAY_SWAP_XY true
+
+// 旋转版本右转90度
+//  #define DISPLAY_MIRROR_X false
+//  #define DISPLAY_MIRROR_Y false
+//  #define DISPLAY_SWAP_XY true
 
 // 默认屏幕方向
-#define DISPLAY_MIRROR_X true
-#define DISPLAY_MIRROR_Y false
-#define DISPLAY_SWAP_XY false
+// #define DISPLAY_MIRROR_X true
+// #define DISPLAY_MIRROR_Y false
+// #define DISPLAY_SWAP_XY false
 
 #define DISPLAY_INVERT_COLOR    true
 #define DISPLAY_RGB_ORDER  LCD_RGB_ELEMENT_ORDER_BGR
@@ -307,7 +317,7 @@
 // WS2812灯珠配置
 #define WS2812_GPIO GPIO_NUM_10 // WS2812灯珠数据线GPIO
 #define WS2812_LED_NUM 20     // 总灯珠数
-#define WS2812_LED_NUM_USED 20 // 实际用的灯珠数
+#define WS2812_LED_NUM_USED 8 // 实际用的灯珠数
 
 /* Camera pins */
 // GC0308摄像头

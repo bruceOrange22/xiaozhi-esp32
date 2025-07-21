@@ -9,6 +9,8 @@
 #include "lamp_controller.h"
 #include "iot/thing_manager.h"
 #include "led/single_led.h"
+#include "led/circular_strip.h"
+// #include "led_strip_control.h" // kevin c3板子配置
 #include "esp32_camera.h"
 
 #include <wifi_station.h>
@@ -77,6 +79,8 @@ private:
 
     LcdDisplay* display_;
     Esp32Camera *camera_;
+
+    CircularStrip *led_strip_;
 
     void InitializeSpi()
     {
@@ -180,9 +184,12 @@ private:
         auto& thing_manager = iot::ThingManager::GetInstance();
         thing_manager.AddThing(iot::CreateThing("Speaker"));
         thing_manager.AddThing(iot::CreateThing("Screen"));
-        thing_manager.AddThing(iot::CreateThing("Ws2812Controller"));
+        // thing_manager.AddThing(iot::CreateThing("Ws2812Controller"));
 #elif CONFIG_IOT_PROTOCOL_MCP
-        static LampController lamp(LAMP_GPIO);
+        // static LampController lamp(LAMP_GPIO);
+
+        led_strip_ = new CircularStrip(WS2812_GPIO, WS2812_LED_NUM_USED);
+        new LedStripControl(led_strip_);
 #endif
     }
 
@@ -247,11 +254,28 @@ public:
         }
     }
 
+    // //单个灯组LampController* GetLamp() override 
     // virtual Led* GetLed() override {
     //     static SingleLed led(BUILTIN_LED_GPIO);
     //     return &led;
     // }
 
+
+    //灯带控制方法
+    // 测试下来可以改编灯的颜色，但是其他功能无效
+    virtual Led *GetLed() override
+    {
+        static CircularStrip led(WS2812_GPIO, WS2812_LED_NUM_USED);
+        return &led;
+    }
+
+    // 试试kevin c3灯带效果
+// #if CONFIG_IOT_PROTOCOL_MCP
+//     virtual Led *GetLed() override
+//     {
+//         return led_strip_;
+//     }
+// #endif
     virtual AudioCodec* GetAudioCodec() override {
 #ifdef AUDIO_I2S_METHOD_SIMPLEX
         static NoAudioCodecSimplex audio_codec(AUDIO_INPUT_SAMPLE_RATE, AUDIO_OUTPUT_SAMPLE_RATE,

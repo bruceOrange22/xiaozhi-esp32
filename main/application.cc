@@ -780,6 +780,7 @@ void Application::AudioLoop() {
 
 void Application::OnAudioOutput() {
     if (busy_decoding_audio_) {
+        // ESP_LOGI(TAG, "Skipping audio output because audio is busy decoding");
         return;
     }
 
@@ -811,11 +812,13 @@ void Application::OnAudioOutput() {
     background_task_->Schedule([this, codec, packet = std::move(packet)]() mutable {
         busy_decoding_audio_ = false;
         if (aborted_) {
+            ESP_LOGI(TAG, "Aborted speaking, skip audio output");
             return;
         }
 
         std::vector<int16_t> pcm;
         if (!opus_decoder_->Decode(std::move(packet.payload), pcm)) {
+            ESP_LOGE(TAG, "Failed to decode opus packet");
             return;
         }
         // Resample if the sample rate is different
@@ -907,13 +910,25 @@ bool Application::ReadAudio(std::vector<int16_t>& data, int sample_rate, int sam
 }
 
 void Application::AbortSpeaking(AbortReason reason) {
-    ESP_LOGI(TAG, "Abort speaking");
+    ESP_LOGI(TAG, "---Abort speaking---");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        audio_decode_queue_.clear(); // 清空队列，确保提示音优先
+    }
+
+    // TODO 测试不行有延迟，所有音频都是在一个队列里
+    ResetDecoder();
+    PlaySound(Lang::Sounds::P3_POPUP);
+    ESP_LOGI(TAG, "Wake word detected------------");
+    vTaskDelay(pdMS_TO_TICKS(70));
     aborted_ = true;
+
     protocol_->SendAbortSpeaking(reason);
 }
 
 void Application::SetListeningMode(ListeningMode mode) {
     listening_mode_ = mode;
+    ESP_LOGI(TAG, "into  SetListeningMode");
     SetDeviceState(kDeviceStateListening);
 }
 
