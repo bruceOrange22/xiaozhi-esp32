@@ -34,6 +34,7 @@ Ws2812ControllerMCP::Ws2812ControllerMCP() {
 
     audio_led_meter_set_strip(led_strip_);
     RegisterMcpTools();
+    
 
     ESP_LOGI(TAG, "TEST: WS2812灯带初始化完成");
 }
@@ -434,11 +435,11 @@ void Ws2812ControllerMCP::OnStateChanged() {
 
 } // namespace ws2812
 
-static ws2812::Ws2812ControllerMCP* g_ws2812_controller = nullptr;
+// static ws2812::Ws2812ControllerMCP* g_ws2812_controller = nullptr;
 
-void InitializeWs2812ControllerMCP() {
-    if (g_ws2812_controller == nullptr) {
-        g_ws2812_controller = new ws2812::Ws2812ControllerMCP();
-        ESP_LOGI(TAG, "WS2812控制器MCP版已初始化,并注册MCP工具");
-    }
-}
+// void InitializeWs2812ControllerMCP() {
+//     if (g_ws2812_controller == nullptr) {
+//         g_ws2812_controller = new ws2812::Ws2812ControllerMCP();
+//         ESP_LOGI(TAG, "WS2812控制器MCP版已初始化,并注册MCP工具");
+//     }
+// }

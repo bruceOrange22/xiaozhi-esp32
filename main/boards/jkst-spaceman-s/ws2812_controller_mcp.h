@@ -68,6 +68,6 @@ public:
 
 } // namespace ws2812
 
-extern "C"  void InitializeWs2812ControllerMCP();
+// extern "C"  void InitializeWs2812ControllerMCP();
 
 #endif // XIAOZHI_ESP32_DANMAI_WS2812_CONTROLLER_MCP_H

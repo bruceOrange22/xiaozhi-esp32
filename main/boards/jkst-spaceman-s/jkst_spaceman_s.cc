@@ -83,7 +83,8 @@ private:
     LcdDisplay* display_;
     Esp32Camera *camera_;
 
-    CircularStrip *led_strip_;
+    // CircularStrip *led_strip_;
+    ws2812::Ws2812ControllerMCP *ws2812_controller_ = nullptr;
 
     void InitializeSpi()
     {
@@ -193,8 +194,7 @@ private:
 
         // led_strip_ = new CircularStrip(WS2812_GPIO, WS2812_LED_NUM_USED);
         // new LedStripControl(led_strip_);
-
-        InitializeWs2812ControllerMCP();
+        ws2812_controller_ = new ws2812::Ws2812ControllerMCP();
 
 #endif
     }
@@ -259,12 +259,11 @@ public:
             GetBacklight()->RestoreBrightness();
         }
     }
-
-    // virtual Led *GetLed() override
-    // {
-    //     static CircularStrip led(WS2812_GPIO, WS2812_LED_NUM_USED);
-    //     return &led;
-    // }
+    //尝试测试
+    virtual Led *GetLed() override
+    {
+        return ws2812_controller_;
+    }
 
     // //单个灯组LampController* GetLamp() override 
     // virtual Led* GetLed() override {
