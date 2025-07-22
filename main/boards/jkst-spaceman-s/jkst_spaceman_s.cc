@@ -23,6 +23,9 @@
 
 #include "otto_emoji_display.h"
 
+
+#include "ws2812_controller_mcp.h"
+
 #define LCD_TYPE_GC9A01_SERIAL
 
 #if defined(LCD_TYPE_ILI9341_SERIAL)
@@ -188,8 +191,11 @@ private:
 #elif CONFIG_IOT_PROTOCOL_MCP
         // static LampController lamp(LAMP_GPIO);
 
-        led_strip_ = new CircularStrip(WS2812_GPIO, WS2812_LED_NUM_USED);
-        new LedStripControl(led_strip_);
+        // led_strip_ = new CircularStrip(WS2812_GPIO, WS2812_LED_NUM_USED);
+        // new LedStripControl(led_strip_);
+
+        InitializeWs2812ControllerMCP();
+
 #endif
     }
 
@@ -263,11 +269,11 @@ public:
 
     //灯带控制方法
     // 测试下来可以改编灯的颜色，但是其他功能无效
-    virtual Led *GetLed() override
-    {
-        static CircularStrip led(WS2812_GPIO, WS2812_LED_NUM_USED);
-        return &led;
-    }
+    // virtual Led *GetLed() override
+    // {
+    //     static CircularStrip led(WS2812_GPIO, WS2812_LED_NUM_USED);
+    //     return &led;
+    // }
 
     // 试试kevin c3灯带效果
 // #if CONFIG_IOT_PROTOCOL_MCP
@@ -298,11 +304,11 @@ public:
         }
         return nullptr;
     }
-
-    virtual Camera *GetCamera() override
-    {
-        return camera_;
-    }
+///// 如果没有相机 使用MCP的话，千万不要打开
+    // virtual Camera *GetCamera() override
+    // {
+    //     return camera_;
+    // }
 };
 
 DECLARE_BOARD(JKST_SPACEMANS);

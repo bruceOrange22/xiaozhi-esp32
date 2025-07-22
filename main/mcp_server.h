@@ -9,6 +9,7 @@
 #include <optional>
 #include <stdexcept>
 #include <thread>
+#include <esp_log.h>
 
 #include <cJSON.h>
 
@@ -72,19 +73,22 @@ public:
         return std::get<T>(value_);
     }
 
-    template<typename T>
-    inline void set_value(const T& value) {
-        // 添加对设置的整数值进行范围检查
-        if constexpr (std::is_same_v<T, int>) {
-            if (min_value_.has_value() && value < min_value_.value()) {
-                throw std::invalid_argument("Value is below minimum allowed: " + std::to_string(min_value_.value()));
-            }
-            if (max_value_.has_value() && value > max_value_.value()) {
-                throw std::invalid_argument("Value exceeds maximum allowed: " + std::to_string(max_value_.value()));
-            }
+template<typename T>
+inline void set_value(const T& value) {
+    if constexpr (std::is_same_v<T, int>) {
+        if (min_value_.has_value() && value < min_value_.value()) {
+            ESP_LOGI("Property", "Value %d 低于最小值 %d，已自动修正为 %d", value, min_value_.value(), min_value_.value());
+            value_ = min_value_.value();  // 自动修正为最小值
+            return;
         }
-        value_ = value;
+        if (max_value_.has_value() && value > max_value_.value()) {
+            ESP_LOGI("Property", "Value %d 超出最大值 %d，已自动修正为 %d", value, max_value_.value(), max_value_.value());
+            value_ = max_value_.value();  // 自动修正为最大值
+            return;
+        }
     }
+    value_ = value;
+}
 
     std::string to_json() const {
         cJSON *json = cJSON_CreateObject();
