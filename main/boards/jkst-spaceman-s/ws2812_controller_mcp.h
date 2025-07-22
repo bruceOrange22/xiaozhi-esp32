@@ -6,6 +6,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/Task.h>
 #include <mcp_server.h>
+#include "led/led.h"
 
 
 
@@ -20,7 +21,7 @@ enum Ws2812EffectType {
     EFFECT_RAINBOW_FLOW = 5
 };
 
-class Ws2812ControllerMCP {
+class Ws2812ControllerMCP : public Led {
 private:
     led_strip_handle_t led_strip_ = nullptr;
     TaskHandle_t effect_task_handle_ = nullptr;
@@ -58,7 +59,12 @@ public:
     ~Ws2812ControllerMCP();
 
     void RegisterMcpTools();
-};
+    void TurnOff();
+    void SetColor(uint8_t r, uint8_t g, uint8_t b);
+    void StartEffect(Ws2812EffectType effect);
+
+        void OnStateChanged() override;
+    };
 
 } // namespace ws2812
 

@@ -5,6 +5,9 @@
 #include <driver/gpio.h>
 #include "audio_led_meter.h"
 
+#include "application.h"
+#include "led/led.h"  // 确保引入 Led 接口定义
+
 #define TAG "Ws2812ControllerMCP"
 
 namespace ws2812 {
@@ -343,6 +346,91 @@ void Ws2812ControllerMCP::RegisterMcpTools() {
 
     audio_led_meter_enable(0);
 }
+
+void Ws2812ControllerMCP::StartEffect(Ws2812EffectType effect) {
+    if (effect_type_ != effect) {
+        effect_type_ = effect;
+        StartEffectTask();  // 启动灯效任务
+    }
+}
+
+void Ws2812ControllerMCP::SetColor(uint8_t r, uint8_t g, uint8_t b) {
+    color_r_ = r;
+    color_g_ = g;
+    color_b_ = b;
+
+    // 如果当前没有运行灯效任务，则直接设置颜色
+    if (effect_type_ == EFFECT_OFF) {
+        for (int i = 0; i < WS2812_LED_NUM; i++) {
+            led_strip_set_pixel(led_strip_, i, scale(r), scale(g), scale(b));
+        }
+    }
+}
+
+void Ws2812ControllerMCP::TurnOff() {
+    audio_led_meter_enable(0);
+    effect_type_ = EFFECT_OFF;
+    StopEffectTask();
+    ESP_LOGI(TAG, "关闭灯带");
+    for (int i = 0; i < WS2812_LED_NUM; i++)
+    {
+        led_strip_set_pixel(led_strip_, i, 0, 0, 0);
+    }
+    led_strip_refresh(led_strip_);
+}
+
+void Ws2812ControllerMCP::OnStateChanged() {
+    auto& app = Application::GetInstance();
+    auto device_state = app.GetDeviceState();
+
+    switch (device_state) {
+        case kDeviceStateStarting: {
+            // 示例：启动时设置为呼吸灯
+            StartEffect(EFFECT_BREATH);
+            break;
+        }
+        case kDeviceStateWifiConfiguring: {
+            // 闪烁表示 WiFi 配置中
+            StartEffect(EFFECT_BREATH);
+            break;
+        }
+        case kDeviceStateIdle: {
+            // 熄灭
+            TurnOff();
+            break;
+        }
+        case kDeviceStateConnecting: {
+            // 蓝色常亮
+            SetColor(0, 0, 255);
+            break;
+        }
+        case kDeviceStateListening: {
+            // 红色呼吸灯
+            StartEffect(EFFECT_BREATH);
+            break;
+        }
+        case kDeviceStateSpeaking: {
+            // 绿色呼吸灯
+            StartEffect(EFFECT_BREATH);
+            break;
+        }
+        case kDeviceStateUpgrading: {
+            // 快速绿色闪烁
+            StartEffect(EFFECT_BREATH);
+            break;
+        }
+        case kDeviceStateActivating: {
+            // 慢速绿色闪烁
+            StartEffect(EFFECT_BREATH);
+            break;
+        }
+        default:
+            ESP_LOGW("Ws2812ControllerMCP", "未知设备状态: %d", device_state);
+            return;
+    }
+}
+
+
 
 } // namespace ws2812
 

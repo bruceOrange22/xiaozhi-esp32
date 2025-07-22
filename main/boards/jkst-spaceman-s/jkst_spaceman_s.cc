@@ -260,6 +260,12 @@ public:
         }
     }
 
+    // virtual Led *GetLed() override
+    // {
+    //     static CircularStrip led(WS2812_GPIO, WS2812_LED_NUM_USED);
+    //     return &led;
+    // }
+
     // //单个灯组LampController* GetLamp() override 
     // virtual Led* GetLed() override {
     //     static SingleLed led(BUILTIN_LED_GPIO);
