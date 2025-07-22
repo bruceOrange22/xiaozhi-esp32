@@ -136,7 +136,41 @@ void Ws2812ControllerMCP::EffectTask(void* arg) {
             led_strip_refresh(self->led_strip_);
             marquee_pos = (marquee_pos + 1) % WS2812_LED_NUM_USED;
             vTaskDelay(pdMS_TO_TICKS(80));
-        } else {
+        }
+        else if (self->effect_type_ == EFFECT_SCROLL)
+        {
+            // ✅ 滚动灯逻辑
+            for (int i = 0; i < WS2812_LED_NUM_USED; i++)
+            {
+                if (i == self->scroll_offset_)
+                {
+                    led_strip_set_pixel(self->led_strip_, i, self->scale(self->color_r_), self->scale(self->color_g_), self->scale(self->color_b_));
+                }
+                else
+                {
+                    led_strip_set_pixel(self->led_strip_, i, 0, 0, 0);
+                }
+            }
+            led_strip_refresh(self->led_strip_);
+            self->scroll_offset_ = (self->scroll_offset_ + 1) % WS2812_LED_NUM_USED;
+            vTaskDelay(pdMS_TO_TICKS(100)); // 可配置为参数
+        }
+        else if (self->effect_type_ == EFFECT_BLINK)
+        {
+            // ✅ 闪烁灯逻辑
+            for (int i = 0; i < WS2812_LED_NUM_USED; i++)
+            {
+                uint8_t r = self->blink_state_ ? self->scale(self->color_r_) : 0;
+                uint8_t g = self->blink_state_ ? self->scale(self->color_g_) : 0;
+                uint8_t b = self->blink_state_ ? self->scale(self->color_b_) : 0;
+                led_strip_set_pixel(self->led_strip_, i, r, g, b);
+            }
+            led_strip_refresh(self->led_strip_);
+            self->blink_state_ = !self->blink_state_;
+            vTaskDelay(pdMS_TO_TICKS(self->blink_interval_));
+        }
+        else
+        {
             for (int i = 0; i < WS2812_LED_NUM; i++) {
                 led_strip_set_pixel(self->led_strip_, i, 0, 0, 0);
             }
@@ -159,6 +193,8 @@ void Ws2812ControllerMCP::StartEffectTask() {
         xTaskCreate(EffectTask, "ws2812_effect", 4096, this, 5, &effect_task_handle_);
     }
 }
+
+
 
 void Ws2812ControllerMCP::StopEffectTask() {
     running_ = false;
@@ -211,7 +247,7 @@ void Ws2812ControllerMCP::RegisterMcpTools() {
     mcp_server.AddTool(
         "self.ws2812.set_brightness",
         "设置灯带亮度，0~100",
-        PropertyList({Property("value", kPropertyTypeInteger, 100, 0, 100)}),
+        PropertyList({Property("value", kPropertyTypeInteger, 40, 0, 100)}),
         [this](const PropertyList& properties) -> ReturnValue {
             int val = properties["value"].value<int>();
             if (val < 0) val = 0;
@@ -344,6 +380,46 @@ void Ws2812ControllerMCP::RegisterMcpTools() {
             led_strip_refresh(led_strip_);
             return true;
         });
+    mcp_server.AddTool(
+    "self.ws2812.scroll",
+    "滚动灯效果",
+    PropertyList(),
+    [this](const PropertyList& properties) -> ReturnValue {
+        ESP_LOGI(TAG, "设置滚动灯效果");
+        StopEffectTask();
+        effect_type_ = EFFECT_SCROLL;
+        StartEffectTask();
+        return true;
+    });
+
+mcp_server.AddTool(
+    "self.ws2812.blink",
+    "闪烁灯效果",
+    PropertyList({
+        Property("r", kPropertyTypeInteger, 255, 0, 255),
+        Property("g", kPropertyTypeInteger, 0, 0, 255),
+        Property("b", kPropertyTypeInteger, 0, 0, 255),
+        Property("interval", kPropertyTypeInteger, 500, 100, 2000)
+    }),
+    [this](const PropertyList& properties) -> ReturnValue {
+        // StripColor color = {
+        //     properties["r"].value<int>(),
+        //     properties["g"].value<int>(),
+        //     properties["b"].value<int>()
+        // };
+        color_r_ = properties["r"].value<int>();
+        color_g_ = properties["g"].value<int>();
+        color_b_ = properties["b"].value<int>();
+        
+        int interval = properties["interval"].value<int>();
+        ESP_LOGI(TAG, "设置闪烁灯效果: %d,%d,%d @ %dms", color_r_, color_g_, color_b_, interval);
+        StopEffectTask();
+        // blink_color_ = {color_r_, color_g_, color_b_};
+        blink_interval_ = interval;
+        effect_type_ = EFFECT_BLINK;
+        StartEffectTask();
+        return true;
+    });
 
     audio_led_meter_enable(0);
 }
@@ -368,7 +444,56 @@ void Ws2812ControllerMCP::SetColor(uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
-void Ws2812ControllerMCP::TurnOff() {
+void Ws2812ControllerMCP::StartScrollEffect(int interval_ms) {
+    if (effect_type_ != EFFECT_SCROLL) {
+        effect_type_ = EFFECT_SCROLL;
+        scroll_offset_ = 0;
+        StartEffectTask();
+    }
+}
+
+void Ws2812ControllerMCP::StartBlinkEffect(int interval_ms) {
+    blink_interval_ = interval_ms;
+    if (effect_type_ != EFFECT_BLINK) {
+        effect_type_ = EFFECT_BLINK;
+        StartEffectTask();
+    }
+}
+
+// 音量律动效果的实现
+void Ws2812ControllerMCP::StartVolumeEffect() {
+    StopEffectTask();
+    ESP_LOGI(TAG, "设置音量律动效果");
+    for (int i = 0; i < WS2812_LED_NUM; i++)
+    {
+        led_strip_set_pixel(led_strip_, i, 0, 0, 0);
+    }
+    led_strip_refresh(led_strip_);
+    audio_led_meter_enable(1);
+}
+
+// 设置彩色律动效果
+void Ws2812ControllerMCP::StartColorVolumeEffect()
+{
+    StartVolumeEffect();
+    audio_led_meter_init_colors(); // 重新随机一组颜色
+    ESP_LOGI(TAG, "已随机更换音量律动的灯带配色");
+}
+
+void Ws2812ControllerMCP::ClearLED()
+{
+    StopEffectTask();
+    ESP_LOGI(TAG, "设置音量律动效果");
+    for (int i = 0; i < WS2812_LED_NUM; i++)
+    {
+        led_strip_set_pixel(led_strip_, i, 0, 0, 0);
+    }
+    led_strip_refresh(led_strip_);
+    ESP_LOGI(TAG, "清除所有LED灯");
+}
+
+void Ws2812ControllerMCP::TurnOff()
+{
     audio_led_meter_enable(0);
     effect_type_ = EFFECT_OFF;
     StopEffectTask();
@@ -387,12 +512,15 @@ void Ws2812ControllerMCP::OnStateChanged() {
     switch (device_state) {
         case kDeviceStateStarting: {
             // 示例：启动时设置为呼吸灯
-            StartEffect(EFFECT_BREATH);
+            // StartEffect(EFFECT_BREATH);
+            StartScrollEffect(100); // 启动滚动灯
+            
             break;
         }
         case kDeviceStateWifiConfiguring: {
             // 闪烁表示 WiFi 配置中
-            StartEffect(EFFECT_BREATH);
+            // StartEffect(EFFECT_BREATH);
+            StartBlinkEffect(500); // 
             break;
         }
         case kDeviceStateIdle: {
@@ -403,16 +531,22 @@ void Ws2812ControllerMCP::OnStateChanged() {
         case kDeviceStateConnecting: {
             // 蓝色常亮
             SetColor(0, 0, 255);
+            StartEffect(EFFECT_BREATH);
             break;
         }
         case kDeviceStateListening: {
-            // 红色呼吸灯
+            // 蓝色呼吸灯
+            // ClearLED();
             StartEffect(EFFECT_BREATH);
             break;
         }
         case kDeviceStateSpeaking: {
             // 绿色呼吸灯
-            StartEffect(EFFECT_BREATH);
+            // StartEffect(EFFECT_BREATH);
+            // StartEffect(EFFECT_RAINBOW_FLOW);
+
+            // 音量律动
+            StartColorVolumeEffect();
             break;
         }
         case kDeviceStateUpgrading: {

@@ -255,12 +255,14 @@ namespace iot
                     led_strip_set_pixel(led_strip_, i, 0, 0, 0);
                 }
                 led_strip_refresh(led_strip_);
-                audio_led_meter_enable(1); });
+                audio_led_meter_enable(1); 
+            });
             methods_.AddMethod(
                 "random_meter_colors", "随机更换音量律动的灯带配色", ParameterList(), [this](const ParameterList &)
                 {
                     audio_led_meter_init_colors(); // 重新随机一组颜色
-                    ESP_LOGI(TAG, "已随机更换音量律动的灯带配色"); });
+                    ESP_LOGI(TAG, "已随机更换音量律动的灯带配色"); 
+                });
 
             methods_.AddMethod(
                 "set_meter_single_color", "设置音量律动为单色",

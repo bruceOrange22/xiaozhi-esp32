@@ -656,10 +656,10 @@ void Application::Start() {
 
                 // Play the pop up sound to indicate the wake word is detected
                 // And wait 60ms to make sure the queue has been processed by audio task
-                ResetDecoder();
-                PlaySound(Lang::Sounds::P3_POPUP);
-                ESP_LOGI(TAG, "Wake word detected------------");
-                vTaskDelay(pdMS_TO_TICKS(60));
+                // ResetDecoder();
+                // PlaySound(Lang::Sounds::P3_POPUP);
+                // ESP_LOGI(TAG, "Wake word detected------------");
+                // vTaskDelay(pdMS_TO_TICKS(60));
 
 #else
                 // Play the pop up sound to indicate the wake word is detected
@@ -910,17 +910,17 @@ bool Application::ReadAudio(std::vector<int16_t>& data, int sample_rate, int sam
 }
 
 void Application::AbortSpeaking(AbortReason reason) {
-    ESP_LOGI(TAG, "---Abort speaking---");
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        audio_decode_queue_.clear(); // 清空队列，确保提示音优先
-    }
+    // ESP_LOGI(TAG, "---Abort speaking---");
+    // {
+    //     std::lock_guard<std::mutex> lock(mutex_);
+    //     audio_decode_queue_.clear(); // 清空队列，确保提示音优先
+    // }
 
     // TODO 测试不行有延迟，所有音频都是在一个队列里
-    ResetDecoder();
-    PlaySound(Lang::Sounds::P3_POPUP);
-    ESP_LOGI(TAG, "Wake word detected------------");
-    vTaskDelay(pdMS_TO_TICKS(70));
+    // ResetDecoder();
+    // PlaySound(Lang::Sounds::P3_POPUP);
+    // ESP_LOGI(TAG, "Wake word detected------------");
+    // vTaskDelay(pdMS_TO_TICKS(70));
     aborted_ = true;
 
     protocol_->SendAbortSpeaking(reason);
