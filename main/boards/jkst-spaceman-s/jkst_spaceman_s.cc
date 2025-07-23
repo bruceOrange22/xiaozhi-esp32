@@ -189,6 +189,8 @@ private:
         thing_manager.AddThing(iot::CreateThing("Speaker"));
         thing_manager.AddThing(iot::CreateThing("Screen"));
         // thing_manager.AddThing(iot::CreateThing("Ws2812Controller"));
+        thing_manager.AddThing(iot::CreateThing("Lamp"));
+        
 #elif CONFIG_IOT_PROTOCOL_MCP
         // static LampController lamp(LAMP_GPIO);
 
@@ -259,17 +261,17 @@ public:
             GetBacklight()->RestoreBrightness();
         }
     }
-    //尝试测试
-    virtual Led *GetLed() override
-    {
-        return ws2812_controller_;
-    }
+    //尝试测试2812mcp
+    // virtual Led *GetLed() override
+    // {
+    //     return ws2812_controller_;
+    // }
 
     // //单个灯组LampController* GetLamp() override 
-    // virtual Led* GetLed() override {
-    //     static SingleLed led(BUILTIN_LED_GPIO);
-    //     return &led;
-    // }
+    virtual Led* GetLed() override {
+        static SingleLed led(GPIO_NUM_10);
+        return &led;
+    }
 
 
     //灯带控制方法

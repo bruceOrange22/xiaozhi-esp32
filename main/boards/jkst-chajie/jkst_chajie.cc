@@ -158,9 +158,12 @@ private:
         auto& thing_manager = iot::ThingManager::GetInstance();
         thing_manager.AddThing(iot::CreateThing("Speaker"));
         thing_manager.AddThing(iot::CreateThing("Screen"));
+        // 单个灯珠
+        thing_manager.AddThing(iot::CreateThing("Lamp"));
+
         // thing_manager.AddThing(iot::CreateThing("Ws2812Controller"));
-        thing_manager.AddThing(iot::CreateThing("SwitchController"));
-        thing_manager.AddThing(iot::CreateThing("LampControllerG"));
+        // thing_manager.AddThing(iot::CreateThing("SwitchController"));
+        // thing_manager.AddThing(iot::CreateThing("LampControllerG"));
 #elif CONFIG_IOT_PROTOCOL_MCP
         static LampController lamp(LAMP_GPIO);
 #endif
@@ -179,10 +182,10 @@ public:
         
     }
 
-    // virtual Led* GetLed() override {
-    //     static SingleLed led(BUILTIN_LED_GPIO);
-    //     return &led;
-    // }
+    virtual Led* GetLed() override {
+        static SingleLed led(BUILTIN_LED_GPIO);
+        return &led;
+    }
 
     virtual AudioCodec* GetAudioCodec() override {
 #ifdef AUDIO_I2S_METHOD_SIMPLEX

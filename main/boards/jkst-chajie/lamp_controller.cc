@@ -7,7 +7,7 @@
 #include "freertos/task.h"
 #define TAG "LampControllerG"
 
-// 简单的电机开关控制
+// 简单的台灯开关控制
 #ifndef LAMP_GPIO
 #define LAMP_GPIO GPIO_NUM_11 // 默认使用 GPIO 11
 #endif
