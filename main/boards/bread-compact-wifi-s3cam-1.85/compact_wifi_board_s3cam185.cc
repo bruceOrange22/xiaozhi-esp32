@@ -220,6 +220,7 @@ class CustomBoard : public WifiBoard
 {
 private:
     Button boot_button_;
+    Button touch_button_;
     LcdDisplay *display_;
 
     void InitializeSpi()
@@ -378,6 +379,13 @@ private:
                 ResetWifiConfiguration();
             }
             app.ToggleChatState(); });
+        touch_button_.OnClick([this]()
+                              {
+auto& app = Application::GetInstance();
+if (app.GetDeviceState() == kDeviceStateStarting && !WifiStation::GetInstance().IsConnected()) {
+ResetWifiConfiguration();
+}
+app.ToggleChatState(); });
     }
 
     void InitializeIot()
@@ -388,7 +396,8 @@ private:
     }
 
 public:
-    CustomBoard() : boot_button_(BOOT_BUTTON_GPIO)
+    CustomBoard() : boot_button_(BOOT_BUTTON_GPIO),
+                    touch_button_(TOUCH_BUTTON_GPIO)
     {
         InitializeSpi();
         Initializest77916Display();
