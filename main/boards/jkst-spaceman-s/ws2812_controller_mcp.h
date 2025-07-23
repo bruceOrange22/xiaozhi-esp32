@@ -33,6 +33,8 @@ namespace ws2812 {
         volatile Ws2812EffectType effect_type_ = EFFECT_OFF;
         volatile bool running_ = false;
 
+        int num_scroll_ = 3; // 滚动灯珠数量
+
         uint8_t color_r_ = 0;
         uint8_t color_g_ = 255;
         uint8_t color_b_ = 0;

@@ -139,10 +139,23 @@ void Ws2812ControllerMCP::EffectTask(void* arg) {
         }
         else if (self->effect_type_ == EFFECT_SCROLL)
         {
-            // ✅ 滚动灯逻辑
+            // 支持连续点亮num_scroll_个灯珠
             for (int i = 0; i < WS2812_LED_NUM_USED; i++)
             {
-                if (i == self->scroll_offset_)
+                // 判断当前位置是否在滚动窗口内
+                int start = self->scroll_offset_;
+                int end = (start + self->num_scroll_) % WS2812_LED_NUM_USED;
+                bool in_window = false;
+                if (end > start)
+                {
+                    in_window = (i >= start && i < end);
+                }
+                else
+                {
+                    in_window = (i >= start || i < end);
+                }
+
+                if (in_window)
                 {
                     led_strip_set_pixel(self->led_strip_, i, self->scale(self->color_r_), self->scale(self->color_g_), self->scale(self->color_b_));
                 }
