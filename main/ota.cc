@@ -53,7 +53,8 @@ Http* Ota::SetupHttp() {
     auto& board = Board::GetInstance();
     auto app_desc = esp_app_get_description();
 
-    auto http = board.CreateHttp();
+    auto network = board.GetNetwork();
+    auto http = network->CreateHttp(0);
     http->SetHeader("Activation-Version", has_serial_number_ ? "2" : "1");
     http->SetHeader("Device-Id", SystemInfo::GetMacAddress().c_str());
     http->SetHeader("Client-Id", board.GetUuid());
@@ -148,6 +149,10 @@ bool Ota::CheckVersion() {
                 if (settings.GetString(item->string) != item->valuestring) {
                     settings.SetString(item->string, item->valuestring);
                 }
+            } else if (cJSON_IsNumber(item)) {
+                if (settings.GetInt(item->string) != item->valueint) {
+                    settings.SetInt(item->string, item->valueint);
+                }
             }
         }
         has_mqtt_config_ = true;
@@ -162,9 +167,13 @@ bool Ota::CheckVersion() {
         cJSON *item = NULL;
         cJSON_ArrayForEach(item, websocket) {
             if (cJSON_IsString(item)) {
-                settings.SetString(item->string, item->valuestring);
+                if (settings.GetString(item->string) != item->valuestring) {
+                    settings.SetString(item->string, item->valuestring);
+                }
             } else if (cJSON_IsNumber(item)) {
-                settings.SetInt(item->string, item->valueint);
+                if (settings.GetInt(item->string) != item->valueint) {
+                    settings.SetInt(item->string, item->valueint);
+                }
             }
         }
         has_websocket_config_ = true;
@@ -264,7 +273,8 @@ void Ota::Upgrade(const std::string& firmware_url) {
     bool image_header_checked = false;
     std::string image_header;
 
-    auto http = std::unique_ptr<Http>(Board::GetInstance().CreateHttp());
+    auto network = Board::GetInstance().GetNetwork();
+    auto http = std::unique_ptr<Http>(network->CreateHttp(0));
     if (!http->Open("GET", firmware_url)) {
         ESP_LOGE(TAG, "Failed to open HTTP connection");
         return;
