@@ -8,7 +8,7 @@
 #include "mcp_server.h"
 #include "lamp_controller.h"
 #include "iot/thing_manager.h"
-// #include "led/single_led.h"
+#include "led/single_led.h"
 
 #include <wifi_station.h>
 #include <esp_log.h>

@@ -28,7 +28,7 @@
 #endif
 
 
-#define BUILTIN_LED_GPIO        GPIO_NUM_10
+#define BUILTIN_LED_GPIO        GPIO_NUM_11
 #define BOOT_BUTTON_GPIO        GPIO_NUM_0
 #define TOUCH_BUTTON_GPIO       GPIO_NUM_NC
 #define VOLUME_UP_BUTTON_GPIO   GPIO_NUM_NC
@@ -299,6 +299,6 @@
 #define SWITCH_GPIO GPIO_NUM_10 // 控制风扇电机开关针脚
 
 // 控制灯开关针脚
-#define LAMP_GPIO GPIO_NUM_11 // 控制灯开关针脚
+// #define LAMP_GPIO GPIO_NUM_11 // 控制灯开关针脚
 
 #endif // _BOARD_CONFIG_H_

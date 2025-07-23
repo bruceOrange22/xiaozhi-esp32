@@ -121,14 +121,14 @@ void SingleLed::OnStateChanged() {
     auto device_state = app.GetDeviceState();
     switch (device_state) {
         case kDeviceStateStarting:
-            SetColor(255, 0, DEFAULT_BRIGHTNESS);
+            SetColor(0, 255, 0);
             StartContinuousBlink(100);
             ESP_LOGI(TAG, "Device is starting, LED set to red with default brightness.");
             break;
         case kDeviceStateWifiConfiguring:
-            SetColor(0, 255, DEFAULT_BRIGHTNESS);
+            SetColor(255, 0, 0);
             StartContinuousBlink(500);
-            ESP_LOGI(TAG, "Device is configuring WiFi, LED set to green with default brightness.");
+            ESP_LOGI(TAG, "Device is configuring WiFi, LED set to red with default brightness.");
             break;
         case kDeviceStateIdle:
             SetColor(0, 0, 0);
@@ -136,25 +136,29 @@ void SingleLed::OnStateChanged() {
             ESP_LOGI(TAG, "Device is idle, LED turned off.");
             break;
         case kDeviceStateConnecting:
-            SetColor(0, 0, 255);
+            SetColor(255, 0, 0);
             TurnOn();
-            ESP_LOGI(TAG, "Device is connecting, LED set to blue.");
+            ESP_LOGI(TAG, "Device is connecting, LED set to red.");
             break;
         case kDeviceStateListening:
-            if (app.IsVoiceDetected()) {
-                SetColor(HIGH_BRIGHTNESS, 0, 0);
-                ESP_LOGI(TAG, "Voice detected, LED set to high brightness red.");
-            } else {
-                SetColor(LOW_BRIGHTNESS, 0, 0);
-                ESP_LOGI(TAG, "No voice detected, LED set to low brightness red.");
-            }
-            TurnOn();
+            // if (app.IsVoiceDetected()) {
+            //     SetColor(HIGH_BRIGHTNESS, 0, 0);
+            //     ESP_LOGI(TAG, "Voice detected, LED set to high brightness red.");
+            // } else {
+            //     SetColor(LOW_BRIGHTNESS, 0, 0);
+            //     ESP_LOGI(TAG, "No voice detected, LED set to low brightness red.");
+            // }
+            // TurnOn();
 
+            // break;
+            SetColor(255, 255, 0);
+            TurnOn();
+            ESP_LOGI(TAG, "Device is connecting, LED set to yellow.");
             break;
         case kDeviceStateSpeaking:
-            SetColor(0, DEFAULT_BRIGHTNESS, 0);
+            SetColor(0, 0, 255);
             TurnOn();
-            ESP_LOGI(TAG, "Device is speaking, LED set to green with default brightness.");
+            ESP_LOGI(TAG, "Device is speaking, LED set to blue with default brightness.");
             break;
         case kDeviceStateUpgrading:
             SetColor(0, DEFAULT_BRIGHTNESS, 0);
