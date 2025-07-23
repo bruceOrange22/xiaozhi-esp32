@@ -30,7 +30,7 @@
 
 #define BUILTIN_LED_GPIO        GPIO_NUM_NC
 #define BOOT_BUTTON_GPIO        GPIO_NUM_0
-#define TOUCH_BUTTON_GPIO       GPIO_NUM_NC
+#define TOUCH_BUTTON_GPIO       GPIO_NUM_13
 #define VOLUME_UP_BUTTON_GPIO   GPIO_NUM_NC
 #define VOLUME_DOWN_BUTTON_GPIO GPIO_NUM_NC
 
@@ -45,13 +45,10 @@
 
 // 使用GC9A01系列
 
-#if 0
+
 #define CONFIG_LCD_GC9A01_240X240
 #define LCD_TYPE_GC9A01_SERIAL
-#else 
-#define CONFIG_LCD_GC9A01_240X240
-#define LCD_TYPE_GC9A01_SERIAL
-#endif
+
 
 #ifdef CONFIG_LCD_ST7789_240X320
 #define LCD_TYPE_ST7789_SERIAL
@@ -268,7 +265,18 @@
 #define DISPLAY_WIDTH   240
 #define DISPLAY_HEIGHT  240
 
-//旋转版本
+
+// 旋转版本左转180度
+// #define DISPLAY_MIRROR_X false
+// #define DISPLAY_MIRROR_Y true
+// #define DISPLAY_SWAP_XY false
+
+// 旋转版本左转90度
+// #define DISPLAY_MIRROR_X true
+// #define DISPLAY_MIRROR_Y true
+// #define DISPLAY_SWAP_XY true
+
+//旋转版本右转90度
 // #define DISPLAY_MIRROR_X false
 // #define DISPLAY_MIRROR_Y false
 // #define DISPLAY_SWAP_XY true
@@ -302,7 +310,7 @@
 
 
 // A MCP Test: Control a lamp
-#define LAMP_GPIO GPIO_NUM_NC
+#define LAMP_GPIO GPIO_NUM_48
 
 // WS2812灯珠配置
 #define WS2812_GPIO GPIO_NUM_10 // WS2812灯珠数据线GPIO
